@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>山富旅遊2024旅展歌詩達郵輪高雄港特別航次抽獎活動</title>
+<meta charset="UTF-8">
+<style>
+body {
+  font-family: sans-serif;
+  background-image: url('https://www.travel4u.com.tw/project/2024-itf/images/costa-serena-03.jpg'); /* Main Visual */
+  background-size: cover;
+  background-position: center;
+  color: #fff; /* Text color for contrast */
+  text-align: center; /* Center align content */
+  padding: 20px;
+
+}
+
+.container {
+  background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent black background */
+  padding: 40px;
+  border-radius: 10px;
+  max-width: 600px;
+  margin: 0 auto; /* Center the container */
+}
+
+h1 {
+  font-size: 2em;
+  color: #ffd700; /* Gold color like the ITF page */
+  margin-bottom: 20px;
+}
+
+img {
+  max-width: 200px; /* Adjust logo size as needed */
+  margin-bottom: 20px;
+}
+#result {
+  margin-top: 20px;
+  font-weight: bold;
+  font-size: 1.2em;
+
+}
+
+/* Style input elements */
+input[type="file"], input[type="date"], input[type="number"] {
+  margin: 10px 0;
+  padding: 8px;
+  border-radius: 5px;
+
+}
+
+button {
+  background-color: #ffd700; /* Gold button */
+  color: #000;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+
+}
+button:hover{
+    background-color: #e6be00;
+}
+/* Add some animation to the result area (optional) */
+#result {
+  animation: fadeIn 1s ease-in-out; /* Add fadeIn animation */
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+</style>
+</head>
+<body>
+
+<div class="container">  <!-- Added container div -->
+  <img src="https://www.travel4u.com.tw/statics/index/images/sys/nav-logo.10b4c41b2568.svg" alt="山富旅遊 Logo">
+  <h1>山富旅遊2024旅展歌詩達郵輪高雄港特別航次抽獎活動</h1>
+
+  <input type="file" id="fileInput" accept=".csv">
+  <input type="date" id="drawDate" value="2024-11-01"> 抽獎日期 (YYYY-MM-DD)
+  <input type="number" id="winnerCount" value="1" min="1"> 抽獎人數
+  <button onclick="loadAndDraw()">開始抽獎</button>
+
+  <div id="result"></div>
+</div>
+
+<script>
+function loadAndDraw() {
+  const fileInput = document.getElementById('fileInput');
+  const drawDate = document.getElementById('drawDate').value;
+  const winnerCount = parseInt(document.getElementById('winnerCount').value);
+  const resultDiv = document.getElementById('result');
+
+  if (!fileInput.files.length) {
+    alert("請選擇檔案");
+    return;
+  }
+
+  const file = fileInput.files[0];
+  const reader = new FileReader();
+
+  reader.onload = function(e) {
+    const data = e.target.result;
+    const entries = parseCSV(data, drawDate);
+    const winners = drawWinners(entries, winnerCount);
+
+    
+
+    //resultDiv.innerHTML = "中獎名單：<br>" + winners.join("<br>");
+
+    let winnerDisplay = "中獎名單：<br>";
+    for (let i = 0; i < winners.length; i++) {
+      winnerDisplay += `${i + 1}. ${winners[i]}<br>`; // Add numbering here
+    }
+    resultDiv.innerHTML = winnerDisplay;
+  };
+
+  reader.readAsText(file);
+}
+
+function parseCSV(data, drawDate) {
+  const lines = data.split('\n');
+  const entries = [];
+  const headerRow = lines[0].split(',').map(s => s.trim().replace(/"/g, ''));
+  const dateIndex = headerRow.indexOf('實體旅展訂購日期');
+  const nameIndex = headerRow.indexOf('旅客姓名');
+  const orderIndex = headerRow.indexOf('訂單編號');
+  const weightIndex = headerRow.indexOf('符合人數');
+
+  const targetDateParts = drawDate.split('-'); // Correctly parse the date input
+  const targetMonth = parseInt(targetDateParts[1]);
+  const targetDay = parseInt(targetDateParts[2]);
+
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    const parts = line.split(',').map(s => s.trim().replace(/"/g, ''));
+
+    const currentDate = parts[dateIndex] || '';
+    const currentDateParts = currentDate.split('/');  // Split the CSV date string
+    const currentMonth = parseInt(currentDateParts[0]);
+    const currentDay = parseInt(currentDateParts[1]);
+
+    if (currentMonth === targetMonth && currentDay === targetDay) { // Correct comparison
+      entries.push({
+        name: parts[nameIndex] || '',
+        orderNumber: parts[orderIndex] || '',
+        weight: parseInt(parts[weightIndex]) || 1
+      });
+    }
+  }
+  return entries;
+}
+
+function drawWinners(entries, count) {
+  let weightedEntries = [];
+  for (const entry of entries) {
+    for (let i = 0; i < entry.weight; i++) {
+      weightedEntries.push(entry);
+    }
+  }
+
+  const winners = [];
+  for (let i = 0; i < count && weightedEntries.length > 0; i++) {
+    const randomIndex = Math.floor(Math.random() * weightedEntries.length);
+    winners.push(weightedEntries.splice(randomIndex, 1)[0]);
+  }
+
+  return winners.map(w => `${w.name},${w.orderNumber}`);
+}
+
+</script>
+
+</body>
+</html>
